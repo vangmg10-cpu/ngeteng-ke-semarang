@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ngeteng ke Semarang — UAS Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e0c08;--paper:#1a1710;--card:#211f18;--accent:#e8c84a;--text:#e8e0cc;--muted:#8a8270;--border:#3a3620;--good:#4caf80;--neutral:#4a9edd;--bad:#e05c3a;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+.screen{display:none;min-height:100vh;flex-direction:column;animation:fadeIn .5s ease forwards;}
+.screen.active{display:flex;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes trainMove{0%{transform:translateX(-120px)}100%{transform:translateX(120px)}}
+@keyframes trackScroll{0%{background-position:0 0}100%{background-position:-60px 0}}
+@keyframes starTwinkle{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes floatUp{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-30px);opacity:0}}
+
+/* ── SPLASH ── */
+#splash-screen{justify-content:center;align-items:center;text-align:center;background:var(--bg);position:relative;overflow:hidden;}
+.splash-stars{position:absolute;inset:0;pointer-events:none;}
+.splash-star{position:absolute;background:var(--accent);border-radius:50%;animation:starTwinkle 2s ease-in-out infinite;}
+.splash-logo{font-family:'Playfair Display',serif;font-size:clamp(3rem,10vw,6rem);line-height:1;color:var(--text);margin-bottom:.5rem;}
+.splash-logo span{color:var(--accent);font-style:italic;}
+.splash-sub{font-family:'DM Mono',monospace;font-size:.75rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-bottom:3rem;}
+.splash-bar{width:200px;height:2px;background:var(--border);margin:0 auto 1rem;position:relative;overflow:hidden;}
+.splash-bar-fill{position:absolute;left:0;top:0;height:100%;background:var(--accent);width:0%;transition:width .1s linear;}
+.splash-pct{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted);}
+
+/* ── INPUT NAMA ── */
+#name-screen{justify-content:center;align-items:center;padding:2rem;}
+.name-card{max-width:480px;width:100%;background:var(--card);border:1px solid var(--border);padding:3rem;}
+.name-badge{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:1rem;display:block;}
+.name-title{font-family:'Playfair Display',serif;font-size:2rem;margin-bottom:.75rem;line-height:1.2;}
+.name-desc{font-size:.9rem;color:var(--muted);line-height:1.7;margin-bottom:2rem;}
+.name-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:1rem 1.25rem;font-family:'DM Sans',sans-serif;font-size:1rem;outline:none;transition:border-color .2s;margin-bottom:1.5rem;}
+.name-input:focus{border-color:var(--accent);}
+.name-input::placeholder{color:var(--muted);}
+
+/* ── HEADER ── */
+.story-header{padding:1.1rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--paper);position:sticky;top:0;z-index:10;flex-wrap:wrap;gap:.5rem;}
+.story-logo{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--accent);letter-spacing:.15em;}
+.header-right{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.budget-chip{display:flex;align-items:center;gap:.5rem;}
+.budget-label-sm{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);letter-spacing:.1em;}
+.budget-amount{font-family:'DM Mono',monospace;font-size:.95rem;font-weight:500;transition:color .3s,transform .2s;}
+.budget-amount.good{color:var(--good);}
+.budget-amount.warn{color:var(--accent);}
+.budget-amount.bad{color:var(--bad);}
+.budget-amount.bump{transform:scale(1.15);}
+.poin-chip{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--accent);background:rgba(232,200,74,.1);border:1px solid rgba(232,200,74,.3);padding:.25rem .6rem;}
+.audio-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:.35rem .65rem;font-family:'DM Mono',monospace;font-size:.65rem;cursor:pointer;transition:all .2s;}
+.audio-btn:hover,.audio-btn.playing{border-color:var(--accent);color:var(--accent);}
+.progress-dots{display:flex;gap:5px;align-items:center;}
+.dot{width:6px;height:6px;background:var(--border);border-radius:50%;transition:background .3s;}
+.dot.done{background:var(--accent);}
+.dot.current{background:var(--text);}
+
+/* ── STORY BODY ── */
+.story-body{flex:1;max-width:720px;width:100%;margin:0 auto;padding:3rem 2rem;}
+.scene-tag{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.2em;color:var(--accent);text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem;}
+.scene-tag::after{content:'';flex:1;height:1px;background:var(--border);}
+.scene-illustration{width:100%;height:220px;background:var(--card);border:1px solid var(--border);margin-bottom:2rem;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.scene-illustration svg,.scene-illustration canvas{width:100%;height:100%;}
+.scene-title{font-family:'Playfair Display',serif;font-size:1.8rem;line-height:1.2;margin-bottom:1.25rem;}
+.scene-title em{color:var(--accent);font-style:italic;}
+.scene-text{font-size:1rem;line-height:1.8;color:#c8bfa8;margin-bottom:2rem;font-weight:300;}
+.scene-text strong{color:var(--text);font-weight:500;}
+.choices-label{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:1rem;}
+.choices{display:flex;flex-direction:column;gap:.75rem;}
+.choice-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:1.25rem 1.5rem;text-align:left;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.95rem;transition:all .2s;display:flex;align-items:flex-start;gap:1rem;position:relative;overflow:hidden;}
+.choice-btn:hover{border-color:var(--accent);transform:translateX(4px);}
+.choice-key{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--accent);background:rgba(232,200,74,.1);border:1px solid rgba(232,200,74,.3);padding:.2rem .5rem;flex-shrink:0;margin-top:2px;}
+.choice-content{flex:1;}
+.choice-title{font-weight:500;margin-bottom:.25rem;}
+.choice-detail{font-size:.82rem;color:var(--muted);font-family:'DM Mono',monospace;}
+.choice-detail.cost{color:var(--bad);}
+.choice-detail.save{color:var(--good);}
+.poin-badge{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--accent);margin-top:.25rem;}
+
+/* ── VIDEO SCENE ── */
+.video-wrapper{width:100%;height:220px;background:#000;border:1px solid var(--border);margin-bottom:2rem;position:relative;overflow:hidden;}
+.video-label{position:absolute;top:.5rem;left:.5rem;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--accent);background:rgba(0,0,0,.7);padding:.2rem .5rem;z-index:2;}
+
+/* ── RECAP SCREEN ── */
+#recap-screen{justify-content:center;align-items:center;padding:3rem 2rem;}
+.recap-card{max-width:580px;width:100%;background:var(--card);border:1px solid var(--border);padding:2.5rem;}
+.recap-title{font-family:'Playfair Display',serif;font-size:1.8rem;margin-bottom:.5rem;}
+.recap-sub{font-size:.85rem;color:var(--muted);margin-bottom:2rem;}
+.recap-list{list-style:none;margin-bottom:2rem;}
+.recap-item{display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;border-bottom:1px solid var(--border);font-size:.9rem;}
+.recap-item:last-child{border:none;}
+.recap-key{color:var(--muted);font-size:.8rem;font-family:'DM Mono',monospace;}
+.recap-val{color:var(--text);font-weight:500;}
+.recap-poin{font-family:'DM Mono',monospace;font-size:1.5rem;color:var(--accent);text-align:center;margin-bottom:.5rem;}
+.recap-poin-label{font-size:.75rem;color:var(--muted);text-align:center;font-family:'DM Mono',monospace;margin-bottom:1.5rem;}
+
+/* ── ENDING ── */
+#ending-screen{justify-content:center;align-items:center;text-align:center;padding:3rem 2rem;}
+.ending-badge{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;padding:.5rem 1.25rem;border:2px solid;display:inline-block;margin-bottom:2rem;}
+.ending-badge.good{color:var(--good);border-color:var(--good);}
+.ending-badge.neutral{color:var(--neutral);border-color:var(--neutral);}
+.ending-badge.bad{color:var(--bad);border-color:var(--bad);}
+.ending-title{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,6vw,3rem);line-height:1.1;margin-bottom:1.5rem;}
+.ending-title.good{color:var(--good);}
+.ending-title.neutral{color:var(--neutral);}
+.ending-title.bad{color:var(--bad);}
+.ending-text{font-size:1rem;color:#c8bfa8;line-height:1.8;max-width:500px;margin:0 auto 2rem;font-weight:300;}
+.ending-stats{display:flex;gap:1.5rem;justify-content:center;margin-bottom:2.5rem;flex-wrap:wrap;}
+.stat-box{background:var(--card);border:1px solid var(--border);padding:1.25rem 1.5rem;min-width:130px;}
+.stat-label{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:.5rem;}
+.stat-value{font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:500;}
+.stat-value.good{color:var(--good);}
+.stat-value.bad{color:var(--bad);}
+.stat-value.neutral{color:var(--neutral);}
+.stat-value.accent{color:var(--accent);}
+.gelar{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--accent);margin-bottom:1.5rem;font-style:italic;}
+
+/* ── RIWAYAT ── */
+#history-screen{flex-direction:column;}
+.history-body{max-width:680px;width:100%;margin:0 auto;padding:2.5rem 2rem;}
+.history-title{font-family:'Playfair Display',serif;font-size:1.8rem;margin-bottom:.5rem;}
+.history-sub{font-size:.85rem;color:var(--muted);margin-bottom:2rem;}
+.history-empty{text-align:center;padding:3rem;color:var(--muted);font-family:'DM Mono',monospace;font-size:.85rem;}
+.history-item{background:var(--card);border:1px solid var(--border);padding:1.25rem 1.5rem;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;}
+.history-name{font-weight:500;font-size:1rem;}
+.history-meta{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--muted);}
+.history-ending{font-family:'DM Mono',monospace;font-size:.7rem;padding:.2rem .6rem;border:1px solid;}
+.history-ending.good{color:var(--good);border-color:var(--good);}
+.history-ending.neutral{color:var(--neutral);border-color:var(--neutral);}
+.history-ending.bad{color:var(--bad);border-color:var(--bad);}
+
+/* ── MENU ── */
+#menu-screen{justify-content:center;align-items:center;padding:3rem 2rem;text-align:center;}
+.menu-greeting{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--accent);letter-spacing:.15em;margin-bottom:.5rem;}
+.menu-heading{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,5vw,3rem);margin-bottom:.5rem;line-height:1.2;}
+.menu-budget-display{font-family:'DM Mono',monospace;font-size:1.2rem;color:var(--accent);margin-bottom:.5rem;}
+.menu-budget-label{font-size:.75rem;color:var(--muted);margin-bottom:2.5rem;font-family:'DM Mono',monospace;}
+.menu-items{display:flex;flex-direction:column;gap:.75rem;width:100%;max-width:380px;}
+.menu-item{background:var(--card);border:1px solid var(--border);color:var(--text);padding:1.1rem 1.5rem;font-family:'DM Sans',sans-serif;font-size:1rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:space-between;text-align:left;}
+.menu-item:hover{border-color:var(--accent);background:rgba(232,200,74,.05);transform:translateX(4px);}
+
+/* ── ABOUT ── */
+#about-screen{justify-content:center;align-items:center;padding:3rem 2rem;}
+.about-card{max-width:600px;width:100%;background:var(--card);border:1px solid var(--border);padding:3rem;}
+.about-title{font-family:'Playfair Display',serif;font-size:1.8rem;margin-bottom:1.5rem;color:var(--accent);}
+.about-text{font-size:.95rem;color:#c8bfa8;line-height:1.8;margin-bottom:1.5rem;}
+.about-list{list-style:none;margin-bottom:2rem;}
+.about-list li{font-family:'DM Mono',monospace;font-size:.82rem;color:var(--muted);padding:.5rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
+.about-list li span{color:var(--text);}
+
+/* ── BUTTONS ── */
+.btn-primary{background:var(--accent);color:#0e0c08;border:none;padding:1rem 2.5rem;font-family:'DM Mono',monospace;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-weight:500;transition:all .2s;}
+.btn-primary:hover{background:#f0d860;transform:translateY(-2px);}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);padding:.9rem 2rem;font-family:'DM Mono',monospace;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-left:1rem;}
+.btn-ghost:hover{border-color:var(--muted);color:var(--text);}
+
+/* ── NOTIF ── */
+.notif{position:fixed;top:5rem;right:2rem;background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);padding:.75rem 1.25rem;font-family:'DM Mono',monospace;font-size:.78rem;color:var(--text);z-index:200;animation:slideIn .3s ease,fadeOut .3s ease 2.5s forwards;max-width:260px;}
+@keyframes fadeOut{to{opacity:0;pointer-events:none}}
+
+/* ── POIN FLOAT ── */
+.poin-float{position:fixed;font-family:'DM Mono',monospace;font-size:1rem;color:var(--accent);font-weight:500;z-index:300;pointer-events:none;animation:floatUp .8s ease forwards;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .story-body{padding:2rem 1.25rem;}
+  .story-header{padding:1rem 1.25rem;}
+  .about-card,.recap-card,.name-card{padding:2rem 1.25rem;}
+  .ending-stats{gap:1rem;}
+  .btn-ghost{margin-left:0;margin-top:.5rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ SPLASH ══════════ -->
+<div id="splash-screen" class="screen active">
+  <div class="splash-stars" id="splash-stars"></div>
+  <div>
+    <div class="splash-logo">Ngeteng ke<br><span>Semarang</span></div>
+    <div class="splash-sub">UAS Edition — Interactive Story</div>
+    <div class="splash-bar"><div class="splash-bar-fill" id="splash-fill"></div></div>
+    <div class="splash-pct" id="splash-pct">Loading... 0%</div>
+  </div>
+</div>
+
+<!-- ══════════ INPUT NAMA ══════════ -->
+<div id="name-screen" class="screen">
+  <div class="name-card">
+    <span class="name-badge">Selamat Datang, Pejuang Ransel</span>
+    <h1 class="name-title">Siapa nama<br>backpacker-nya?</h1>
+    <p class="name-desc">Namamu akan tersimpan bersama catatan perjalananmu. Setiap keputusan yang kamu buat akan menentukan akhir cerita — dan gelarmu sebagai backpacker.</p>
+    <input type="text" class="name-input" id="player-name-input" placeholder="Masukkan namamu..." maxlength="30" autocomplete="off">
+    <div style="display:flex;gap:.75rem;align-items:center;">
+      <button class="btn-primary" id="name-submit-btn" onclick="submitName()" disabled>MULAI PERJALANAN →</button>
+    </div>
+    <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+      <button style="background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:.75rem;cursor:pointer;text-decoration:underline;" onclick="showScreen('history-screen')">Lihat riwayat perjalanan sebelumnya →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MENU ══════════ -->
+<div id="menu-screen" class="screen">
+  <div style="position:absolute;top:1.5rem;right:2rem;z-index:5;">
+    <button class="audio-btn" id="menu-audio-btn" onclick="toggleMenuBgm()">♪ BGM</button>
+  </div>
+  <div>
+    <div class="menu-greeting" id="menu-greeting">Halo, Backpacker!</div>
+    <h2 class="menu-heading">Mau ngapain dulu?</h2>
+    <div class="menu-budget-display">Rp 500.000</div>
+    <div class="menu-budget-label">BUDGET PERJALANAN</div>
+    <div class="menu-items">
+      <button class="menu-item" onclick="startStory()">
+        <span>🎒 Mulai Petualangan</span>
+        <span style="font-family:'DM Mono',monospace;font-size:.75rem;color:var(--muted)">→</span>
+      </button>
+      <button class="menu-item" onclick="showScreen('history-screen')">
+        <span>📋 Riwayat Perjalanan</span>
+        <span style="font-family:'DM Mono',monospace;font-size:.75rem;color:var(--muted)">→</span>
+      </button>
+      <button class="menu-item" onclick="showScreen('about-screen')">
+        <span>ℹ️ Tentang Aplikasi</span>
+        <span style="font-family:'DM Mono',monospace;font-size:.75rem;color:var(--muted)">→</span>
+      </button>
+      <button class="menu-item" onclick="changeName()">
+        <span>✏️ Ganti Nama</span>
+        <span style="font-family:'DM Mono',monospace;font-size:.75rem;color:var(--muted)">→</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ STORY ══════════ -->
+<div id="story-screen" class="screen">
+  <header class="story-header">
+    <div class="story-logo">NGETENG KE SEMARANG</div>
+    <div class="progress-dots" id="progress-dots">
+      <div class="dot current" id="dot-0"></div>
+      <div class="dot" id="dot-1"></div>
+      <div class="dot" id="dot-2"></div>
+      <div class="dot" id="dot-3"></div>
+    </div>
+    <div class="header-right">
+      <div class="poin-chip" id="poin-display">⭐ 0 poin</div>
+      <button class="audio-btn" id="audio-toggle-btn" onclick="toggleAmbient()">🔇 MUSIK</button>
+      <div class="budget-chip">
+        <span class="budget-label-sm">BUDGET</span>
+        <span class="budget-amount good" id="budget-display">Rp 500.000</span>
+      </div>
+    </div>
+  </header>
+  <div class="story-body" id="story-body"></div>
+</div>
+
+<!-- ══════════ RECAP ══════════ -->
+<div id="recap-screen" class="screen">
+  <div class="recap-card">
+    <h2 class="recap-title">Ringkasan<br>Perjalananmu</h2>
+    <p class="recap-sub" id="recap-sub">Semua keputusan sudah dibuat. Ini catatannya...</p>
+    <ul class="recap-list" id="recap-list"></ul>
+    <div class="recap-poin" id="recap-poin">0 / 4</div>
+    <div class="recap-poin-label">POIN BACKPACKER</div>
+    <button class="btn-primary" onclick="goToEnding()">LIHAT ENDING →</button>
+  </div>
+</div>
+
+<!-- ══════════ ENDING ══════════ -->
+<div id="ending-screen" class="screen">
+  <div id="ending-content"></div>
+</div>
+
+<!-- ══════════ RIWAYAT ══════════ -->
+<div id="history-screen" class="screen">
+  <header class="story-header">
+    <div class="story-logo">RIWAYAT PERJALANAN</div>
+    <button class="audio-btn" onclick="showScreen('menu-screen')">← MENU</button>
+  </header>
+  <div class="history-body">
+    <h2 class="history-title">Catatan<br>Para Pejuang Ransel</h2>
+    <p class="history-sub">Semua perjalanan yang pernah diselesaikan di perangkat ini.</p>
+    <div id="history-list"></div>
+    <div style="margin-top:1.5rem;text-align:center;">
+      <button class="btn-ghost" onclick="clearHistory()">Hapus semua riwayat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ABOUT ══════════ -->
+<div id="about-screen" class="screen">
+  <div class="about-card">
+    <h2 class="about-title">Tentang Aplikasi</h2>
+    <p class="about-text"><strong style="color:var(--text)">Ngeteng ke Semarang</strong> adalah aplikasi storytelling interaktif UAS yang merupakan pengembangan dari proyek UTS Sistem Multimedia.</p>
+    <p class="about-text">Ceritakan pengalaman backpacker dari Bandung ke Semarang dengan budget terbatas. Setiap keputusan mempengaruhi budget, poin, dan akhir ceritamu.</p>
+    <ul class="about-list">
+      <li>Mata Kuliah <span>Sistem Multimedia</span></li>
+      <li>Versi <span>2.0 — UAS Edition</span></li>
+      <li>Teknologi <span>HTML + CSS + JavaScript</span></li>
+      <li>Multimedia <span>Teks, SVG, Canvas Video, Web Audio</span></li>
+      <li>Total Scene <span>6 scene + 3 ending</span></li>
+      <li>Fitur Baru <span>Poin, Simpan Data, Riwayat, Video</span></li>
+      <li>Publikasi <span>GitHub Pages</span></li>
+    </ul>
+    <button class="btn-primary" onclick="showScreen('menu-screen')">← KEMBALI</button>
+  </div>
+</div>
+
+<script>
+// ══════════ STATE ══════════
+let budget = 500000;
+let poin = 0;
+let choices = {};
+let playerName = '';
+let ambientPlaying = false;
+let menuBgmPlaying = false;
+let audioCtx = null;
+let ambientNodes = [];
+let menuBgmNodes = [];
+let endingType = '';
+
+// ══════════ ILLUSTRATIONS (SVG) ══════════
+const svgBandung = `<svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg">
+<rect width="720" height="220" fill="#0e0c08"/>
+<polygon points="0,130 120,50 240,130" fill="#1a1710" stroke="#3a3620" stroke-width="1"/>
+<polygon points="160,130 320,30 480,130" fill="#211f18" stroke="#3a3620" stroke-width="1"/>
+<polygon points="400,130 560,60 720,130" fill="#1a1710" stroke="#3a3620" stroke-width="1"/>
+<rect y="130" width="720" height="90" fill="#211f18"/>
+<rect x="200" y="155" width="320" height="40" fill="#2a2720" stroke="#3a3620" stroke-width="1"/>
+<rect x="280" y="100" width="160" height="60" fill="#2a2720" stroke="#e8c84a" stroke-width="1"/>
+<rect x="320" y="115" width="80" height="45" fill="#1a1710"/>
+<polygon points="260,100 360,70 460,100" fill="#3a3620" stroke="#e8c84a" stroke-width="1"/>
+<rect x="310" y="82" width="100" height="16" fill="#e8c84a" rx="2"/>
+<text x="360" y="94" text-anchor="middle" fill="#0e0c08" font-family="monospace" font-size="9" font-weight="bold">BANDUNG</text>
+<line x1="0" y1="200" x2="720" y2="200" stroke="#e8c84a" stroke-width="2" stroke-dasharray="20 10" opacity="0.4"/>
+<line x1="0" y1="210" x2="720" y2="210" stroke="#e8c84a" stroke-width="2" stroke-dasharray="20 10" opacity="0.4"/>
+<line x1="180" y1="150" x2="180" y2="190" stroke="#8a8270" stroke-width="2"/>
+<circle cx="180" cy="148" r="5" fill="#e8c84a" opacity="0.9"/>
+<line x1="540" y1="150" x2="540" y2="190" stroke="#8a8270" stroke-width="2"/>
+<circle cx="540" cy="148" r="5" fill="#e8c84a" opacity="0.9"/>
+<circle cx="80" cy="20" r="1.5" fill="#e8e0cc" opacity="0.6"/>
+<circle cx="600" cy="15" r="1" fill="#e8e0cc" opacity="0.5"/>
+<circle cx="650" cy="40" r="1.5" fill="#e8e0cc" opacity="0.7"/>
+</svg>`;
+
+const svgYogya = `<svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg">
+<rect width="720" height="220" fill="#0e0c08"/>
+<rect y="140" width="720" height="80" fill="#1a1710"/>
+<polygon points="280,140 450,20 620,140" fill="#211f18" stroke="#3a3620" stroke-width="1"/>
+<polygon points="100,140 200,70 300,140" fill="#1a1710"/>
+<rect x="100" y="160" width="520" height="30" fill="#2a2720" stroke="#3a3620" stroke-width="1"/>
+<rect x="250" y="90" width="220" height="70" fill="#2a2720" stroke="#e8c84a" stroke-width="1"/>
+<polygon points="230,90 360,50 490,90" fill="#3a3620" stroke="#e8c84a" stroke-width="1.5"/>
+<polygon points="300,90 360,65 420,90" fill="#2a2720" stroke="#e8c84a" stroke-width="1"/>
+<rect x="300" y="60" width="120" height="16" fill="#e8c84a" rx="2"/>
+<text x="360" y="72" text-anchor="middle" fill="#0e0c08" font-family="monospace" font-size="9" font-weight="bold">YOGYAKARTA</text>
+<rect x="560" y="145" width="80" height="45" fill="#2a2720" stroke="#e8c84a" stroke-width="1"/>
+<rect x="555" y="142" width="90" height="8" fill="#e8c84a" opacity="0.8"/>
+<text x="600" y="170" text-anchor="middle" fill="#e8c84a" font-family="monospace" font-size="7">GUDEG</text>
+<circle cx="360" cy="105" r="12" fill="#1a1710" stroke="#e8c84a" stroke-width="1.5"/>
+<line x1="360" y1="105" x2="360" y2="97" stroke="#e8c84a" stroke-width="1.5"/>
+<line x1="360" y1="105" x2="366" y2="110" stroke="#e8c84a" stroke-width="1.5"/>
+</svg>`;
+
+const svgSemarang = `<svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg">
+<rect width="720" height="220" fill="#0e0c08"/>
+<rect y="100" width="720" height="120" fill="#1a1710"/>
+<rect x="260" y="70" width="200" height="110" fill="#211f18" stroke="#e8c84a" stroke-width="1.5"/>
+<rect x="260" y="40" width="35" height="40" fill="#2a2720" stroke="#e8c84a" stroke-width="1"/>
+<rect x="425" y="40" width="35" height="40" fill="#2a2720" stroke="#e8c84a" stroke-width="1"/>
+<polygon points="260,40 277,20 295,40" fill="#3a3620" stroke="#e8c84a" stroke-width="1"/>
+<polygon points="425,40 442,20 460,40" fill="#3a3620" stroke="#e8c84a" stroke-width="1"/>
+<rect x="275" y="80" width="20" height="15" fill="#e8c84a" opacity="0.3" rx="1"/>
+<rect x="305" y="80" width="20" height="15" fill="#e8c84a" opacity="0.2" rx="1"/>
+<rect x="335" y="80" width="20" height="15" fill="#e8c84a" opacity="0.4" rx="1"/>
+<rect x="365" y="80" width="20" height="15" fill="#e8c84a" opacity="0.2" rx="1"/>
+<rect x="395" y="80" width="20" height="15" fill="#e8c84a" opacity="0.3" rx="1"/>
+<rect x="290" y="26" width="140" height="14" fill="#e8c84a" rx="2"/>
+<text x="360" y="37" text-anchor="middle" fill="#0e0c08" font-family="monospace" font-size="8" font-weight="bold">LAWANG SEWU</text>
+<rect y="180" width="720" height="40" fill="#1a1710"/>
+<line x1="0" y1="180" x2="720" y2="180" stroke="#3a3620" stroke-width="1"/>
+</svg>`;
+
+const svgPulang = `<svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg">
+<rect width="720" height="220" fill="#0e0c08"/>
+<circle cx="360" cy="130" r="60" fill="#e8c84a" opacity="0.08"/>
+<circle cx="360" cy="130" r="35" fill="#e8c84a" opacity="0.12"/>
+<circle cx="360" cy="130" r="18" fill="#e8c84a" opacity="0.25"/>
+<rect y="130" width="720" height="90" fill="#1a1710"/>
+<rect x="50" y="90" width="30" height="50" fill="#211f18"/>
+<rect x="100" y="75" width="40" height="65" fill="#1a1710"/>
+<rect x="570" y="80" width="45" height="60" fill="#211f18"/>
+<rect x="630" y="90" width="40" height="50" fill="#1a1710"/>
+<line x1="0" y1="175" x2="720" y2="175" stroke="#3a3620" stroke-width="3"/>
+<line x1="0" y1="185" x2="720" y2="185" stroke="#3a3620" stroke-width="3"/>
+<circle cx="355" cy="142" r="9" fill="#e8c84a" opacity="0.5"/>
+<rect x="349" y="151" width="12" height="18" fill="#e8c84a" opacity="0.4"/>
+<rect x="358" y="153" width="9" height="12" fill="#e8c84a" opacity="0.3" rx="2"/>
+<text x="360" y="215" text-anchor="middle" fill="#8a8270" font-family="monospace" font-size="8" letter-spacing="3">PERJALANAN TERAKHIR</text>
+</svg>`;
+
+// ══════════ CANVAS VIDEO (Scene Kereta) ══════════
+function createTrainCanvas() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 720; canvas.height = 220;
+  canvas.style.width = '100%'; canvas.style.height = '100%';
+  const ctx = canvas.getContext('2d');
+  let frame = 0;
+  let raf;
+
+  function drawFrame() {
+    ctx.fillStyle = '#0e0c08';
+    ctx.fillRect(0, 0, 720, 220);
+
+    // Stars
+    const stars = [[80,20],[150,40],[250,15],[400,30],[550,20],[650,45],[300,10],[480,35]];
+    stars.forEach(([x,y],i) => {
+      ctx.globalAlpha = .4 + .3*Math.sin(frame*.05+i);
+      ctx.fillStyle = '#e8e0cc';
+      ctx.beginPath(); ctx.arc(x,y,1.2,0,Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    // Moving hills
+    for(let h=0;h<3;h++){
+      const speed = [0.3,0.5,0.8][h];
+      const ox = (-frame*speed*2)%720;
+      const fills = ['#211f18','#1a1710','#2a2720'];
+      ctx.fillStyle = fills[h];
+      ctx.beginPath();
+      const cx=[200,400,600],cy=[100,80,110],cr=[180,220,150];
+      cx.forEach((x,i)=>{
+        ctx.beginPath();
+        ctx.arc(x+(ox%(720+400))-200,cy[i]+h*10,cr[i],Math.PI,0);
+        ctx.fill();
+      });
+    }
+
+    // Ground
+    ctx.fillStyle='#1a1710'; ctx.fillRect(0,140,720,80);
+
+    // Track sleepers
+    ctx.fillStyle='#2a2720';
+    for(let i=0;i<12;i++){
+      const sx=((i*60)-(frame*2)%60+720)%720;
+      ctx.fillRect(sx,175,15,14);
+    }
+    ctx.strokeStyle='#e8c84a'; ctx.lineWidth=2;
+    ctx.setLineDash([20,10]); ctx.globalAlpha=.4;
+    ctx.beginPath(); ctx.moveTo(0,178); ctx.lineTo(720,178); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,188); ctx.lineTo(720,188); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha=1;
+
+    // Train body (animated shake)
+    const shake = Math.sin(frame*.3)*.5;
+    ctx.fillStyle='#2a2720';
+    ctx.strokeStyle='#e8c84a'; ctx.lineWidth=1.5;
+    roundRect(ctx,150,108+shake,400,70,4,true,true);
+
+    // Windows
+    const wins=[[175,122],[240,122],[305,122],[370,122],[435,122]];
+    wins.forEach(([wx,wy],i)=>{
+      const light=Math.random()>.95?'#e8c84a':'#1a1810';
+      ctx.fillStyle=light; ctx.strokeStyle='#3a3620'; ctx.lineWidth=1;
+      roundRect(ctx,wx,wy+shake,45,30,2,true,true);
+      ctx.fillStyle='rgba(232,200,74,.12)';
+      ctx.fillRect(wx+1,wy+shake+1,43,28);
+    });
+
+    // Wheels
+    [230,320,410,500].forEach(wx=>{
+      ctx.fillStyle='#1a1710'; ctx.strokeStyle='#e8c84a'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(wx,182+shake,12,0,Math.PI*2); ctx.fill(); ctx.stroke();
+      // spokes
+      ctx.strokeStyle='#3a3620'; ctx.lineWidth=.8;
+      for(let a=0;a<4;a++){
+        const ang=a*Math.PI/2+(frame*.05);
+        ctx.beginPath();
+        ctx.moveTo(wx,182+shake);
+        ctx.lineTo(wx+Math.cos(ang)*10,182+shake+Math.sin(ang)*10);
+        ctx.stroke();
+      }
+    });
+
+    // Motion lines
+    ctx.strokeStyle='#3a3620'; ctx.lineWidth=1.5; ctx.globalAlpha=.5;
+    [[30,125,140],[60,140,140],[50,155,140]].forEach(([x,y,tx])=>{
+      ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(tx,y); ctx.stroke();
+    });
+    ctx.globalAlpha=1;
+
+    // VIDEO label
+    ctx.fillStyle='rgba(0,0,0,.7)';
+    ctx.fillRect(8,8,110,20);
+    ctx.fillStyle='#e8c84a'; ctx.font='bold 9px monospace';
+    ctx.fillText('▶ VIDEO — Di Atas Kereta',12,21);
+
+    frame++;
+    raf = requestAnimationFrame(drawFrame);
+  }
+
+  function roundRect(ctx,x,y,w,h,r,fill,stroke){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+    ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r);
+    ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h);
+    ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r);
+    ctx.quadraticCurveTo(x,y,x+r,y);
+    ctx.closePath();
+    if(fill) ctx.fill();
+    if(stroke) ctx.stroke();
+  }
+
+  drawFrame();
+  return {canvas, stop:()=>cancelAnimationFrame(raf)};
+}
+
+let trainAnimation = null;
+
+// ══════════ SCENES ══════════
+const scenes = {
+  s1:{
+    tag:'Scene 1 • Stasiun Bandung', svg:svgBandung,
+    title:'Pagi di <em>Stasiun Bandung</em>',
+    text:`Hari Sabtu pagi. Kamu — <strong id="player-name-inline"></strong> — berdiri di Stasiun Bandung dengan ransel di punggung dan <strong>Rp 500.000</strong> di dompet. Tujuan: Semarang.<br><br>Di papan jadwal, kamu lihat dua opsi keberangkatan...`,
+    choices:[
+      {key:'A',title:'Kereta direct Bandung–Semarang',detail:'Tiket Rp 300.000 · ±7 jam · Langsung',cls:'cost',poin:0,action:()=>{budget-=300000;choices.route='direct';nextScene('s2a');}},
+      {key:'B',title:'Ngeteng lewat Yogya → Solo → Semarang',detail:'Total Rp 150.000 · ±10 jam · Transit 2x',cls:'save',poin:1,action:()=>{budget-=150000;poin+=1;showPoinFloat('+1 Poin Hemat!');choices.route='ngeteng';nextScene('s2b');}}
+    ]
+  },
+  s2a:{
+    tag:'Scene 2 • Di Atas Kereta', video:true,
+    title:'Perjalanan <em>Langsung</em>',
+    get text(){return `Kamu duduk nyaman di kereta direct. Budget tersisa <strong>${fmt(budget)}</strong>. Perjalanan lancar — tapi begitu tiba di Semarang, kamu sadar budget sudah mepet.<br><br>Hari sudah sore. Perut lapar. Kamu butuh penginapan.`;},
+    choices:[
+      {key:'A',title:'Cari hostel murah dulu',detail:'Hostel Rp 80.000/malam · Istirahat',cls:'cost',poin:0,action:()=>{budget-=80000;choices.penginapan='hostel';nextScene('s3');}},
+      {key:'B',title:'Langsung explore, tidur di masjid',detail:'Gratis · Hemat budget',cls:'save',poin:1,action:()=>{poin+=1;showPoinFloat('+1 Poin Hemat!');choices.penginapan='masjid';nextScene('s3');}}
+    ]
+  },
+  s2b:{
+    tag:'Scene 2 • Transit Yogyakarta', svg:svgYogya,
+    title:'Sebentar di <em>Yogyakarta</em>',
+    get text(){return `Kereta berhenti di Tugu. Transit <strong>45 menit</strong>. Budget masih <strong>${fmt(budget)}</strong>. Aroma gudeg tercium dari luar stasiun...`;},
+    choices:[
+      {key:'A',title:'Keluar sebentar, makan Gudeg Yogya',detail:'Rp 25.000 · Nikmat tapi mepet waktu',cls:'cost',poin:0,action:()=>{budget-=25000;choices.transit='jajan';nextScene('s3');}},
+      {key:'B',title:'Tetap di stasiun, beli snack saja',detail:'Rp 10.000 · Aman, tidak ketinggalan kereta',cls:'save',poin:1,action:()=>{budget-=10000;poin+=1;showPoinFloat('+1 Poin Hemat!');choices.transit='hemat';nextScene('s3');}}
+    ]
+  },
+  s3:{
+    tag:'Scene 3 • Semarang', svg:svgSemarang,
+    title:'Tiba di <em>Semarang</em>',
+    get text(){return `Akhirnya! Semarang. Budget sisa <strong>${fmt(budget)}</strong>. Lawang Sewu, Kota Lama, dan kuliner menunggu. Tapi budget perlu dijaga untuk pulang...`;},
+    choices:[
+      {key:'A',title:'Masuk Lawang Sewu + Kota Lama',detail:'Tiket Rp 75.000 · Pengalaman lengkap',cls:'cost',poin:0,action:()=>{budget-=75000;choices.wisata='lawang';nextScene('s4');}},
+      {key:'B',title:'Jalan kaki keliling Kota Lama gratis',detail:'Gratis · Foto-foto, nikmati suasana',cls:'save',poin:1,action:()=>{poin+=1;showPoinFloat('+1 Poin Hemat!');choices.wisata='kotalama';nextScene('s4');}}
+    ]
+  },
+  s4:{
+    tag:'Scene 4 • Hari Kepulangan', svg:svgPulang,
+    title:'Saatnya <em>Pulang</em>',
+    get text(){return `Hari terakhir. Budget tersisa <strong>${fmt(budget)}</strong>. Harus balik ke Bandung...`;},
+    choices:[
+      {key:'A',title:'Kereta direct Semarang–Bandung',detail:'Tiket Rp 250.000 · Nyaman',cls:'cost',poin:0,action:()=>{budget-=250000;choices.pulang='direct';showRecap();}},
+      {key:'B',title:'Ngeteng lagi lewat Solo–Yogya',detail:'±Rp 120.000 · Hemat, perjalanan panjang',cls:'save',poin:1,action:()=>{budget-=120000;poin+=1;showPoinFloat('+1 Poin Hemat!');choices.pulang='ngeteng';showRecap();}}
+    ]
+  }
+};
+
+const sceneIdx={s1:0,s2a:1,s2b:1,s3:2,s4:3};
+
+// ══════════ UTILS ══════════
+function fmt(n){return 'Rp '+Math.abs(n).toLocaleString('id-ID')+(n<0?' (minus)':'');}
+
+function showNotif(msg){
+  document.querySelectorAll('.notif').forEach(e=>e.remove());
+  const el=document.createElement('div');
+  el.className='notif'; el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+function showPoinFloat(msg){
+  const el=document.createElement('div');
+  el.className='poin-float';
+  el.textContent=msg;
+  el.style.cssText=`top:${100+Math.random()*40}px;right:${20+Math.random()*60}px;`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),900);
+}
+
+function updateBudgetDisplay(){
+  const el=document.getElementById('budget-display');
+  if(!el)return;
+  el.textContent=fmt(budget);
+  el.className='budget-amount';
+  if(budget>=300000)el.classList.add('good');
+  else if(budget>=100000)el.classList.add('warn');
+  else el.classList.add('bad');
+  el.classList.add('bump');
+  setTimeout(()=>el.classList.remove('bump'),300);
+}
+
+function updatePoinDisplay(){
+  const el=document.getElementById('poin-display');
+  if(el)el.textContent=`⭐ ${poin} poin`;
+}
+
+function updateProgress(idx){
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('dot-'+i);
+    if(!d)return;
+    d.className='dot';
+    if(i<idx)d.classList.add('done');
+    else if(i===idx)d.classList.add('current');
+  }
+}
+
+// ══════════ NAVIGATION ══════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const t=document.getElementById(id);
+  if(t)t.classList.add('active');
+  if(id!=='story-screen'&&trainAnimation){trainAnimation.stop();trainAnimation=null;}
+}
+
+function changeName(){
+  playerName='';
+  document.getElementById('player-name-input').value='';
+  document.getElementById('name-submit-btn').disabled=true;
+  showScreen('name-screen');
+}
+
+// ══════════ SPLASH ══════════
+function runSplash(){
+  // Create stars
+  const container=document.getElementById('splash-stars');
+  for(let i=0;i<40;i++){
+    const s=document.createElement('div');
+    s.className='splash-star';
+    const sz=Math.random()*2+1;
+    s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${Math.random()*2}s;animation-duration:${1.5+Math.random()*2}s`;
+    container.appendChild(s);
+  }
+  // Progress bar
+  const fill=document.getElementById('splash-fill');
+  const pct=document.getElementById('splash-pct');
+  let p=0;
+  const msgs=['Menyiapkan ransel...','Cek tiket kereta...','Budget check...','Siap berangkat!'];
+  const iv=setInterval(()=>{
+    p=Math.min(p+(Math.random()*8+2),100);
+    fill.style.width=p+'%';
+    pct.textContent=msgs[Math.floor(p/25)]||msgs[3]+` ${Math.floor(p)}%`;
+    if(p>=100){
+      clearInterval(iv);
+      setTimeout(()=>{
+        const saved=localStorage.getItem('ngeteng_player');
+        if(saved){playerName=saved;showMenuWithName();}
+        else showScreen('name-screen');
+      },600);
+    }
+  },60);
+}
+
+// ══════════ NAME ══════════
+document.addEventListener('DOMContentLoaded',()=>{
+  const inp=document.getElementById('player-name-input');
+  const btn=document.getElementById('name-submit-btn');
+  inp.addEventListener('input',()=>{btn.disabled=inp.value.trim().length<2;});
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!btn.disabled)submitName();});
+  runSplash();
+});
+
+function submitName(){
+  const val=document.getElementById('player-name-input').value.trim();
+  if(val.length<2)return;
+  playerName=val;
+  localStorage.setItem('ngeteng_player',playerName);
+  showMenuWithName();
+}
+
+function showMenuWithName(){
+  const g=document.getElementById('menu-greeting');
+  if(g)g.textContent=`Halo, ${playerName}! 👋`;
+  showScreen('menu-screen');
+}
+
+// ══════════ STORY ══════════
+function startStory(){
+  budget=500000; poin=0; choices={};
+  renderScene('s1');
+  showScreen('story-screen');
+}
+
+function renderScene(key){
+  const scene=scenes[key];
+  if(!scene)return;
+  if(trainAnimation){trainAnimation.stop();trainAnimation=null;}
+  updateProgress(sceneIdx[key]||0);
+  updateBudgetDisplay();
+  updatePoinDisplay();
+
+  const body=document.getElementById('story-body');
+  let mediaHTML='';
+  if(scene.video){
+    mediaHTML=`<div class="video-wrapper" id="video-wrapper"><span class="video-label">▶ VIDEO — Animasi Perjalanan Kereta</span></div>`;
+  } else {
+    mediaHTML=`<div class="scene-illustration">${scene.svg||''}</div>`;
+  }
+
+  const chHTML=scene.choices.map((c,i)=>`
+    <button class="choice-btn" onclick="handleChoice(${i},'${key}')">
+      <span class="choice-key">${c.key}</span>
+      <div class="choice-content">
+        <div class="choice-title">${c.title}</div>
+        <div class="choice-detail ${c.cls}">${c.detail}</div>
+        ${c.poin>0?`<div class="poin-badge">+${c.poin} poin hemat ⭐</div>`:''}
+      </div>
+    </button>`).join('');
+
+  body.innerHTML=`
+    <div class="scene-tag">${scene.tag}</div>
+    ${mediaHTML}
+    <h2 class="scene-title">${scene.title}</h2>
+    <p class="scene-text">${typeof scene.text==='function'?scene.text():scene.text}</p>
+    <div class="choices-label">— PILIH TINDAKANMU —</div>
+    <div class="choices">${chHTML}</div>`;
+
+  // Inject player name
+  const ni=document.getElementById('player-name-inline');
+  if(ni)ni.textContent=playerName||'Kamu';
+
+  // Start canvas if video scene
+  if(scene.video){
+    const wrapper=document.getElementById('video-wrapper');
+    if(wrapper){const ta=createTrainCanvas();wrapper.appendChild(ta.canvas);trainAnimation=ta;}
+  }
+
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function handleChoice(idx,key){
+  playSfxClick();
+  const c=scenes[key].choices[idx];
+  if(c&&c.action)c.action();
+}
+
+function nextScene(key){
+  playSfxTransition();
+  updateBudgetDisplay();
+  updatePoinDisplay();
+  setTimeout(()=>renderScene(key),200);
+}
+
+// ══════════ RECAP ══════════
+function showRecap(){
+  updateBudgetDisplay();
+  updatePoinDisplay();
+  const routeLabel={direct:'Kereta direct (Rp 300rb)',ngeteng:'Ngeteng via Yogya (Rp 150rb)'};
+  const transitLabel={jajan:'Keluar makan gudeg',hemat:'Hemat di stasiun'};
+  const wisataLabel={lawang:'Masuk Lawang Sewu',kotalama:'Jalan kaki gratis'};
+  const penginapanLabel={hostel:'Hostel Rp 80rb',masjid:'Gratis (masjid)'};
+  const pulangLabel={direct:'Kereta direct (Rp 250rb)',ngeteng:'Ngeteng (Rp 120rb)'};
+
+  const items=[
+    ['Rute berangkat',routeLabel[choices.route]||'-'],
+    choices.penginapan?['Penginapan Semarang',penginapanLabel[choices.penginapan]]:[],
+    choices.transit?['Transit Yogyakarta',transitLabel[choices.transit]]:[],
+    ['Wisata Semarang',wisataLabel[choices.wisata]||'-'],
+    ['Rute pulang',pulangLabel[choices.pulang]||'-'],
+    ['Sisa budget',fmt(budget)],
+  ].filter(r=>r.length);
+
+  document.getElementById('recap-list').innerHTML=items.map(([k,v])=>`
+    <li class="recap-item"><span class="recap-key">${k}</span><span class="recap-val">${v}</span></li>`).join('');
+  document.getElementById('recap-poin').textContent=`${poin} / 4`;
+  document.getElementById('recap-sub').textContent=`Selamat ya, ${playerName}! Ini catatan perjalananmu...`;
+
+  playSfxTransition();
+  showScreen('recap-screen');
+}
+
+// ══════════ ENDING ══════════
+function getGelar(p){
+  if(p>=4)return'🥇 Backpacker Sejati';
+  if(p>=2)return'🥈 Traveler Berpengalaman';
+  return'🥉 Tourist Dadakan';
+}
+
+function goToEnding(){
+  let type='';
+  if(budget>=100000&&poin>=2)type='good';
+  else if(budget>=0)type='neutral';
+  else type='bad';
+  endingType=type;
+
+  // Save to localStorage history
+  saveHistory(type);
+
+  const gelar=getGelar(poin);
+  const configs={
+    good:{badge:'GOOD ENDING',title:'Trip Sukses! 🎒',color:'good',
+      text:`Kamu berhasil menjelajahi Semarang dan kembali dengan sisa budget. Keputusan-keputusan cermatmu membuat perjalanan ini berkesan tanpa menguras kantong. Itulah backpacker sejati!`,
+      statColor:'good'},
+    neutral:{badge:'NEUTRAL ENDING',title:'Perjalanan Selesai 😌',color:'neutral',
+      text:`Kamu berhasil pulang meski budget pas-pasan. Beberapa keputusan bisa lebih hemat, tapi pengalaman yang kamu dapat tidak ternilai. Lain kali, rencanakan lebih matang!`,
+      statColor:'neutral'},
+    bad:{badge:'BAD ENDING',title:'Kantong Jebol 😅',color:'bad',
+      text:`Pengeluaranmu melebihi budget. Terpaksa minta transfer darurat dari rumah. Perjalanan tetap berkesan, tapi keuangannya perlu lebih diperhatikan ya!`,
+      statColor:'bad'}
+  };
+  const cfg=configs[type];
+
+  document.getElementById('ending-content').innerHTML=`
+    <div class="ending-badge ${cfg.color}">${cfg.badge}</div>
+    <h2 class="ending-title ${cfg.color}">${cfg.title}</h2>
+    <div class="gelar">${gelar}</div>
+    <p class="ending-text">${cfg.text}</p>
+    <div class="ending-stats">
+      <div class="stat-box"><div class="stat-label">Nama</div><div class="stat-value accent">${playerName}</div></div>
+      <div class="stat-box"><div class="stat-label">Sisa Budget</div><div class="stat-value ${cfg.statColor}">${fmt(budget)}</div></div>
+      <div class="stat-box"><div class="stat-label">Poin Hemat</div><div class="stat-value accent">${poin}/4 ⭐</div></div>
+      <div class="stat-box"><div class="stat-label">Gelar</div><div class="stat-value accent" style="font-size:.85rem">${gelar}</div></div>
+    </div>
+    <button class="btn-primary" onclick="startStory()">MAIN LAGI</button>
+    <button class="btn-ghost" onclick="showScreen('menu-screen')">MENU</button>`;
+
+  if(type==='good')playSfxGoodEnding();
+  else if(type==='bad')playSfxBadEnding();
+  else playSfxTransition();
+
+  setTimeout(()=>showScreen('ending-screen'),200);
+}
+
+// ══════════ HISTORY (localStorage) ══════════
+function saveHistory(type){
+  const key='ngeteng_history';
+  const hist=JSON.parse(localStorage.getItem(key)||'[]');
+  hist.unshift({
+    name:playerName,
+    budget:budget,
+    poin:poin,
+    gelar:getGelar(poin),
+    ending:type,
+    route:choices.route,
+    date:new Date().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})
+  });
+  localStorage.setItem(key,JSON.stringify(hist.slice(0,20)));
+}
+
+function renderHistory(){
+  const key='ngeteng_history';
+  const hist=JSON.parse(localStorage.getItem(key)||'[]');
+  const el=document.getElementById('history-list');
+  if(hist.length===0){
+    el.innerHTML='<div class="history-empty">Belum ada riwayat perjalanan.<br>Selesaikan cerita dulu!</div>';
+    return;
+  }
+  el.innerHTML=hist.map((h,i)=>`
+    <div class="history-item">
+      <div>
+        <div class="history-name">${h.name}</div>
+        <div class="history-meta">${h.date} · ${h.gelar} · Rp ${Math.abs(h.budget).toLocaleString('id-ID')} · ⭐${h.poin}/4</div>
+      </div>
+      <span class="history-ending ${h.ending}">${h.ending.toUpperCase()}</span>
+    </div>`).join('');
+}
+
+// Override showScreen to render history
+const _origShow=showScreen;
+window.showScreen=function(id){
+  _origShow(id);
+  if(id==='history-screen')renderHistory();
+};
+
+function clearHistory(){
+  if(confirm('Hapus semua riwayat perjalanan?')){
+    localStorage.removeItem('ngeteng_history');
+    renderHistory();
+    showNotif('Riwayat dihapus.');
+  }
+}
+
+// ══════════ AUDIO ENGINE ══════════
+function getCtx(){
+  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playSfxClick(){
+  const ctx=getCtx();
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.connect(g);g.connect(ctx.destination);
+  o.type='sine';o.frequency.setValueAtTime(880,ctx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(440,ctx.currentTime+.08);
+  g.gain.setValueAtTime(.18,ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.12);
+  o.start();o.stop(ctx.currentTime+.15);
+}
+
+function playSfxTransition(){
+  const ctx=getCtx();
+  [523,659,784].forEach((f,i)=>{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type='triangle';
+    o.frequency.setValueAtTime(f,ctx.currentTime+i*.1);
+    g.gain.setValueAtTime(0,ctx.currentTime+i*.1);
+    g.gain.linearRampToValueAtTime(.12,ctx.currentTime+i*.1+.05);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.1+.3);
+    o.start(ctx.currentTime+i*.1);o.stop(ctx.currentTime+i*.1+.4);
+  });
+}
+
+function playSfxGoodEnding(){
+  const ctx=getCtx();
+  [523,659,784,1047].forEach((f,i)=>{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type='sine';
+    o.frequency.setValueAtTime(f,ctx.currentTime+i*.18);
+    g.gain.setValueAtTime(0,ctx.currentTime+i*.18);
+    g.gain.linearRampToValueAtTime(.15,ctx.currentTime+i*.18+.05);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.18+.5);
+    o.start(ctx.currentTime+i*.18);o.stop(ctx.currentTime+i*.18+.6);
+  });
+}
+
+function playSfxBadEnding(){
+  const ctx=getCtx();
+  [392,349,330,294].forEach((f,i)=>{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type='sawtooth';
+    o.frequency.setValueAtTime(f,ctx.currentTime+i*.2);
+    g.gain.setValueAtTime(0,ctx.currentTime+i*.2);
+    g.gain.linearRampToValueAtTime(.1,ctx.currentTime+i*.2+.05);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.2+.5);
+    o.start(ctx.currentTime+i*.2);o.stop(ctx.currentTime+i*.2+.6);
+  });
+}
+
+function startAmbientTrain(){
+  const ctx=getCtx();
+  ambientNodes=[];
+  const buf=ctx.sampleRate*2;
+  const buffer=ctx.createBuffer(1,buf,ctx.sampleRate);
+  const data=buffer.getChannelData(0);
+  for(let i=0;i<buf;i++)data[i]=Math.random()*2-1;
+  const noise=ctx.createBufferSource();
+  noise.buffer=buffer;noise.loop=true;
+  const nf=ctx.createBiquadFilter();nf.type='bandpass';nf.frequency.value=300;nf.Q.value=.5;
+  const ng=ctx.createGain();ng.gain.value=.04;
+  noise.connect(nf);nf.connect(ng);ng.connect(ctx.destination);noise.start();
+  ambientNodes.push(noise);
+  let ct=ctx.currentTime;
+  function sched(){
+    const now=ctx.currentTime;
+    while(ct<now+1.5){
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type='square';o.frequency.setValueAtTime(80,ct);o.frequency.exponentialRampToValueAtTime(40,ct+.05);
+      g.gain.setValueAtTime(0,ct);g.gain.linearRampToValueAtTime(.07,ct+.01);g.gain.exponentialRampToValueAtTime(.001,ct+.08);
+      o.start(ct);o.stop(ct+.1);ct+=.45+(Math.random()*.05);
+    }
+    if(ambientPlaying)setTimeout(sched,800);
+  }
+  sched();
+  const r=ctx.createOscillator(),rg=ctx.createGain();
+  r.connect(rg);rg.connect(ctx.destination);r.type='sine';r.frequency.value=55;rg.gain.value=.03;r.start();
+  ambientNodes.push(r);
+}
+
+function startMenuBgm(){
+  const ctx=getCtx();
+  menuBgmNodes=[];
+  const melody=[392,440,523,440,392,330,349,392];
+  let t=ctx.currentTime;
+  function loop(){
+    melody.forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type='triangle';o.frequency.value=f;
+      g.gain.setValueAtTime(0,t+i*.4);
+      g.gain.linearRampToValueAtTime(.06,t+i*.4+.05);
+      g.gain.exponentialRampToValueAtTime(.001,t+i*.4+.35);
+      o.start(t+i*.4);o.stop(t+i*.4+.4);
+    });
+    t+=melody.length*.4;
+    if(menuBgmPlaying)menuBgmNodes.push(setTimeout(loop,melody.length*.4*1000));
+  }
+  loop();
+}
+
+function stopAmbient(){ambientNodes.forEach(n=>{try{n.stop();}catch(e){}});ambientNodes=[];}
+function stopMenuBgm(){menuBgmNodes.forEach(t=>clearTimeout(t));menuBgmNodes=[];}
+
+function toggleAmbient(){
+  const ctx=getCtx();if(ctx.state==='suspended')ctx.resume();
+  const btn=document.getElementById('audio-toggle-btn');
+  if(!ambientPlaying){
+    ambientPlaying=true;startAmbientTrain();
+    btn.textContent='🔊 MUSIK';btn.classList.add('playing');showNotif('♪ Ambient kereta aktif');
+  }else{
+    ambientPlaying=false;stopAmbient();
+    btn.textContent='🔇 MUSIK';btn.classList.remove('playing');showNotif('Musik dimatikan');
+  }
+}
+
+function toggleMenuBgm(){
+  const ctx=getCtx();if(ctx.state==='suspended')ctx.resume();
+  const btn=document.getElementById('menu-audio-btn');
+  if(!menuBgmPlaying){
+    menuBgmPlaying=true;startMenuBgm();
+    btn.textContent='🔊 BGM';btn.classList.add('playing');
+  }else{
+    menuBgmPlaying=false;stopMenuBgm();
+    btn.textContent='♪ BGM';btn.classList.remove('playing');
+  }
+}
+
+// ══════════ KEYBOARD ══════════
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('story-screen').classList.contains('active'))return;
+  const btns=document.querySelectorAll('.choice-btn');
+  if(e.key==='a'||e.key==='A'){if(btns[0])btns[0].click();}
+  if(e.key==='b'||e.key==='B'){if(btns[1])btns[1].click();}
+});
+</script>
+</body>
+</html>
